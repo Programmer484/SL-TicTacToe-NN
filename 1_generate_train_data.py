@@ -1,7 +1,11 @@
+"""
+Returns a list of (board, best_move) pairs, where board is a
+Board object and best_move is a 3x3 nested list of move probabilities
+"""
 import itertools
 import pickle
 import tqdm
-from utility import *
+from game_logic import *
 
 
 def valid_turns(board):
@@ -48,22 +52,23 @@ boards_with_turn = [(board, player_turn(board)) for board in valid_boards]
 
 # Convert flat boards to Board objects for MCTS to work with
 boards = []
-for flat_board, turn in boards_with_turn:  
+for flat_board, turn in boards_with_turn:
+    flat_board = [flat_board[i] * turn for i in range(9)]  # Ensure player to move is always represented by '1' token
     board = [flat_board[i:i+3] for i in range(0, 9, 3)]
     empties = [(x, y) for y in range(3) for x in range(3) if board[y][x] == 0]
-    board = Board(3, 3, 3, turn, board, empties)
+    board = Board(3, 3, 3, 1, board, empties)
     boards.append(board)
 
 # Evaluate boards with MCTS
 training_data = []
-iterations = 1
-for board in tqdm.tqdm(boards, desc="Training Progress"):
+iterations = 200
+for board in tqdm.tqdm(boards, desc="Game Generation Progress"):
     mcts = MCTS(board)
     move_probs = mcts.search(iterations, 10)
     training_data.append((board, move_probs))
 
 # Save training data
-with open(f'sl_train_data/sl_train_data_mcts{iterations}.pkl', 'wb') as f:
+with open(f'train_data/mcts{iterations}_iterations.pkl', 'wb') as f:
     pickle.dump(training_data, f)
  
 # Print a random sample from training data

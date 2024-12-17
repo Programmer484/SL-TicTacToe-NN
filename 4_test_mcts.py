@@ -1,4 +1,4 @@
-from utility import *
+from game_logic import *
 
 
 def add_bonus(mcts, move, bonus):
@@ -19,11 +19,12 @@ def add_bonus(mcts, move, bonus):
             child_node.visit_count = 1
 
 
-board = [[ 1,  0,  0],
-         [ 0,  0,  0],
-         [ 0, -1,  0]]
+board = [[-1, -1,  0],
+         [ 1,  1,  0],
+         [-1,  1,  0]]
 empties = [(x, y) for y in range(3) for x in range(3) if board[y][x] == 0]
 board = Board(3, 3, 3, 1, board, empties)
+
 
 # Example 1: No bonus. Always converges on (0, 2) since it
 # has the highest initial evaluation from random playouts

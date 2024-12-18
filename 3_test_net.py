@@ -90,4 +90,4 @@ def load_model(hidden_size, train_split):
     return net
 
 
-play_game(Board(3, 3, 3, 1), HumanPlayer(), NetPlayer(load_model(64, 0.8), deterministic=True), print_game=True)
+play_game(Board(3, 3, 3, 1), NetPlayer(load_model(36, 0.8), deterministic=True), HumanPlayer(), print_game=True)

@@ -1,5 +1,7 @@
 # SL-TicTacToe-NN
-Neural network for TicTacToe trained with supervised learning
+Neural network for TicTacToe trained with supervised learning.
+* To experiment with the training process, run 2_train_net.py
+* To play against the model, or have different nets play against each other, run 3_test_net.py
 
 **Acknowledgements:**
 

@@ -1,9 +1,11 @@
 import pickle
 import random
-import tqdm
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import tqdm
+
 from game_logic import *
 
 

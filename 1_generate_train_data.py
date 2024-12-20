@@ -4,7 +4,9 @@ Board object and best_move is a 3x3 nested list of move probabilities
 """
 import itertools
 import pickle
+
 import tqdm
+
 from game_logic import *
 
 

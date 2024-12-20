@@ -1,12 +1,17 @@
-import torch
-from game_logic import *
 import importlib
-module = importlib.import_module('2_train_net') # Allows us to import a module name that starts with a digit
+import torch
+import tqdm
+
+
+from game_logic import *
+
+# Allows us to import a module name that starts with a digit
+module = importlib.import_module('2_train_net')
 TTTNet = getattr(module, 'TTTNet')
 
 
 class HumanPlayer:
-    def move(*args, **kwargs):
+    def move(self, *args, **kwargs):
         while True:
             try:
                 move = tuple(map(int, input("Enter move as x,y: ").split(',')))
@@ -23,23 +28,54 @@ class NetPlayer:
     def move(self, board, print_probs=False):
         board_tensor = torch.tensor(board.state, dtype=torch.float).flatten()
         board_tensor = board_tensor * board.turn
-        output = self.net(board_tensor)
+        move_probs = self.net(board_tensor)
         # If a move is illegal, set its probability to 0
         for move in range(9):
             if (move % 3, move // 3) not in board.empties:
-                output[move] = 0.0
+                move_probs[move] = 0.0    
+        
         if self.deterministic:
-            move = torch.argmax(output).item()
+            best_move_idx = torch.argmax(move_probs).item()
         else:
-            move = torch.multinomial(output, 1).item()
+            best_move_idx = torch.multinomial(move_probs, 100).item()
+        best_move = (best_move_idx % 3, best_move_idx // 3)
+        
         if print_probs:
             print("\nMove probabilities:")
             for y in range(3):
-                print([f"{output[y*3 + x]:.3f}" for x in range(3)])
-        return (move % 3, move // 3)
+                print([f"{move_probs[y*3 + x]:.3f}" for x in range(3)])
+        return best_move
 
 
-def play_game(board, player1, player2, print_game=False):
+class RandomPlayer:
+    def move(self, board, **kwargs):
+        return random.choice(board.empties)
+
+
+class MCTSPlayer:
+    def __init__(self, iterations, deterministic=False):
+        self.deterministic = deterministic
+        self.iterations = iterations
+
+    def move(self, board, print_probs=False):
+        mcts = MCTS(board)
+        move_probs = mcts.search(self.iterations)
+        move_probs = torch.tensor(move_probs)
+
+        if print_probs:
+            print("\nMove probabilities:")
+            for row in move_probs:
+                print([f"{prob:.3f}" for prob in row])
+        
+        if self.deterministic:
+            best_move_idx = torch.argmax(move_probs).item()
+        else:
+            best_move_idx = torch.multinomial(move_probs, 100).item()
+        best_move = (best_move_idx % 3, best_move_idx // 3)
+
+        return best_move
+
+def play_game(board, player_a, player_b, print_game=False):
     outcome = None
     illegal_move_count = 0
     while outcome == None:
@@ -47,10 +83,8 @@ def play_game(board, player1, player2, print_game=False):
             player = 'X' if board.turn==1 else 'O'
             print(f"\n{'='*7} {player} player's turn {'='*7}")
             print(f"\nBoard:\n{board}")
-        if board.turn == 1:
-            move = player1.move(board, print_probs=print_game)
-        else:
-            move = player2.move(board, print_probs=print_game)
+        player = player_a if board.turn == 1 else player_b
+        move = player.move(board, print_probs=print_game)
         try:
             board.make_move(move)
         except:
@@ -68,18 +102,33 @@ def play_game(board, player1, player2, print_game=False):
     return outcome
 
 
-def net_vs_net(net1_player, net2_player, iterations):
-    net1_wins = 0
-    net2_wins = 0
-    net_info = [[net1_player, net1_wins], [net2_player, net2_wins]]
-    for i in range(iterations):
-        outcome = play_game(Board(3, 3, 3, 1), net_info[0][0], net_info[1][0], print_game=False)
+def tournament(player_a, player_b, num_games):
+    """
+    Run a tournament between two players, alternating who goes first.
+    
+    Returns:
+        List of player info: [[player_a, wins_a], [player_b, wins_b]]
+    """
+    # Initialize win counters for both players
+    player_a_wins = 0
+    player_b_wins = 0
+    player_list = [[player_a, player_a_wins], [player_b, player_b_wins]]
+    
+    # Play specified number of games, alternating who goes first
+    for game in tqdm.tqdm(range(num_games)):
+        current_first = player_list[0][0]
+        current_second = player_list[1][0]
+        outcome = play_game(Board(3, 3, 3, 1), current_first, current_second, print_game=False)
+        
+        # Update win counts based on game outcome
         if outcome == 1:
-            net_info[0][1] += 1
+            player_list[0][1] += 1    # First player won
         elif outcome == -1:
-            net_info[1][1] += 1
-        net_info.reverse()  # Switch who goes first
-    return net_info
+            player_list[1][1] += 1    # Second player won
+        
+        player_list.reverse()
+    
+    return player_list
 
 
 def load_model(hidden_size, train_split):
@@ -90,4 +139,4 @@ def load_model(hidden_size, train_split):
     return net
 
 
-play_game(Board(3, 3, 3, 1), NetPlayer(load_model(36, 0.8), deterministic=True), HumanPlayer(), print_game=True)
+print(tournament(NetPlayer(load_model(36, 0.8), deterministic=True), RandomPlayer(), 1000))

@@ -45,6 +45,12 @@ class NetPlayer(Player):
         board_tensor = torch.tensor(board.state, dtype=torch.float).flatten()
         board_tensor = board_tensor * board.turn
         move_probs = self.net(board_tensor)
+
+        if print_probs:
+            print("\nNetwork probabilities:")
+            for y in range(3):
+                print([f"{move_probs[y*3 + x]:.3f}" for x in range(3)])
+
         # If a move is illegal, set its probability to 0
         for move in range(9):
             if (move % 3, move // 3) not in board.empties:
@@ -55,11 +61,7 @@ class NetPlayer(Player):
         else:
             best_move_idx = torch.multinomial(move_probs, 1).item()
         best_move = (best_move_idx % 3, best_move_idx // 3)
-        
-        if print_probs:
-            print("\nMove probabilities:")
-            for y in range(3):
-                print([f"{move_probs[y*3 + x]:.3f}" for x in range(3)])
+
         return best_move
 
 
@@ -79,7 +81,7 @@ class MCTSPlayer(Player):
         move_probs = torch.tensor(move_probs).flatten()
 
         if print_probs:
-            print("\nMove probabilities:")
+            print("\nMCTS probabilities:")
             for row in move_probs:
                 print([f"{prob:.3f}" for prob in row])
         

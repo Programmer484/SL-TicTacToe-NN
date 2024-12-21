@@ -37,7 +37,7 @@ class NetPlayer:
         if self.deterministic:
             best_move_idx = torch.argmax(move_probs).item()
         else:
-            best_move_idx = torch.multinomial(move_probs, 100).item()
+            best_move_idx = torch.multinomial(move_probs, 1).item()
         best_move = (best_move_idx % 3, best_move_idx // 3)
         
         if print_probs:
@@ -60,7 +60,7 @@ class MCTSPlayer:
     def move(self, board, print_probs=False):
         mcts = MCTS(board)
         move_probs = mcts.search(self.iterations)
-        move_probs = torch.tensor(move_probs)
+        move_probs = torch.tensor(move_probs).flatten()
 
         if print_probs:
             print("\nMove probabilities:")
@@ -70,10 +70,11 @@ class MCTSPlayer:
         if self.deterministic:
             best_move_idx = torch.argmax(move_probs).item()
         else:
-            best_move_idx = torch.multinomial(move_probs, 100).item()
+            best_move_idx = torch.multinomial(move_probs, 1).item()
         best_move = (best_move_idx % 3, best_move_idx // 3)
 
         return best_move
+
 
 def play_game(board, player_a, player_b, print_game=False):
     outcome = None
@@ -112,7 +113,8 @@ def tournament(player_a, player_b, num_games):
     # Initialize win counters for both players
     player_a_wins = 0
     player_b_wins = 0
-    player_list = [[player_a, player_a_wins], [player_b, player_b_wins]]
+    player_list = [[player_a, player_a_wins], 
+                   [player_b, player_b_wins]]
     
     # Play specified number of games, alternating who goes first
     for game in tqdm.tqdm(range(num_games)):
@@ -125,10 +127,11 @@ def tournament(player_a, player_b, num_games):
             player_list[0][1] += 1    # First player won
         elif outcome == -1:
             player_list[1][1] += 1    # Second player won
-        
+
         player_list.reverse()
     
-    return player_list
+    # Return in original order: player_a first, player_b second
+    return player_list if player_list[0][0] == player_a else player_list.reverse()
 
 
 def load_model(hidden_size, train_split):
@@ -139,4 +142,5 @@ def load_model(hidden_size, train_split):
     return net
 
 
-print(tournament(NetPlayer(load_model(36, 0.8), deterministic=True), RandomPlayer(), 1000))
+# print(tournament(NetPlayer(load_model(36, 0.8), deterministic=True), RandomPlayer(), 1000))
+# print(tournament(NetPlayer(load_model(36, 0.8), deterministic=False), MCTSPlayer(1000, deterministic=False), 1000))

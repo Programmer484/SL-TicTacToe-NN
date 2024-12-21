@@ -1,6 +1,7 @@
 import importlib
 import torch
 import tqdm
+from abc import ABC, abstractmethod
 
 
 from game_logic import *
@@ -10,17 +11,32 @@ module = importlib.import_module('2_train_net')
 TTTNet = getattr(module, 'TTTNet')
 
 
-class HumanPlayer:
-    def move(self, *args, **kwargs):
+class Player(ABC):
+    @abstractmethod
+    def move(self, board, **kwargs):
+        """Return a move in the form of (x, y) coordinates.
+        
+        Args:
+            board: The current game board
+            **kwargs: Additional arguments specific to player types
+            
+        Returns:
+            tuple: (x, y) coordinates of the chosen move
+        """
+        pass
+
+
+class HumanPlayer(Player):
+    def move(self, board, **kwargs):
         while True:
             try:
                 move = tuple(map(int, input("Enter move as x,y: ").split(',')))
-                return (move)
+                return move
             except:
                 print("Invalid move, try again")
 
 
-class NetPlayer:
+class NetPlayer(Player):
     def __init__(self, net, deterministic=False):
         self.net = net
         self.deterministic = deterministic
@@ -47,12 +63,12 @@ class NetPlayer:
         return best_move
 
 
-class RandomPlayer:
+class RandomPlayer(Player):
     def move(self, board, **kwargs):
         return random.choice(board.empties)
 
 
-class MCTSPlayer:
+class MCTSPlayer(Player):
     def __init__(self, iterations, deterministic=False):
         self.deterministic = deterministic
         self.iterations = iterations
@@ -103,12 +119,10 @@ def play_game(board, player_a, player_b, print_game=False):
     return outcome
 
 
-def run_match_series(player_a, player_b, num_games):
+def run_match_series(player_a, player_b, num_games, board_params=(3, 3, 3, 1)):
     """
-    Record the results of several matches between two players, alternating who goes first.
-    
-    Returns:
-        List of player info: [[player_a, wins_a], [player_b, wins_b]]
+    Run a series of games between two players, where each player gets an equal
+    opportunity to play first. The function keeps track of wins for each player across all games.
     """
     # Initialize win counters for both players
     player_a_wins = 0
@@ -120,7 +134,7 @@ def run_match_series(player_a, player_b, num_games):
     for game in tqdm.tqdm(range(num_games)):
         current_first = player_list[0][0]
         current_second = player_list[1][0]
-        outcome = play_game(Board(3, 3, 3, 1), current_first, current_second, print_game=False)
+        outcome = play_game(Board(*board_params), current_first, current_second, print_game=False)
         
         # Update win counts based on game outcome
         if outcome == 1:

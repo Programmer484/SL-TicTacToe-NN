@@ -103,9 +103,9 @@ def play_game(board, player_a, player_b, print_game=False):
     return outcome
 
 
-def tournament(player_a, player_b, num_games):
+def run_match_series(player_a, player_b, num_games):
     """
-    Run a tournament between two players, alternating who goes first.
+    Record the results of several matches between two players, alternating who goes first.
     
     Returns:
         List of player info: [[player_a, wins_a], [player_b, wins_b]]
@@ -142,5 +142,5 @@ def load_model(hidden_size, train_split):
     return net
 
 
-# print(tournament(NetPlayer(load_model(36, 0.8), deterministic=True), RandomPlayer(), 1000))
-# print(tournament(NetPlayer(load_model(36, 0.8), deterministic=False), MCTSPlayer(1000, deterministic=False), 1000))
+print(run_match_series(NetPlayer(load_model(36, 0.8), deterministic=True), RandomPlayer(), 1000))
+print(run_match_series(NetPlayer(load_model(36, 0.8), deterministic=False), MCTSPlayer(1000, deterministic=False), 1000))

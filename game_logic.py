@@ -56,9 +56,12 @@ class Board():
         return None
 
     def make_move(self, move_coords: tuple):
-        self.empties.remove(move_coords)
-        self.state[move_coords[1]][move_coords[0]] = self.turn
-        self.turn *= -1
+        try:
+            self.empties.remove(move_coords)
+            self.state[move_coords[1]][move_coords[0]] = self.turn
+            self.turn *= -1
+        except:
+            raise ValueError("Illegal move")
     
 
 """MCTS"""

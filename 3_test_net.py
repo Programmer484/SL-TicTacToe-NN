@@ -121,7 +121,7 @@ def play_game(board, player_a, player_b, print_game=False):
     return outcome
 
 
-def run_match_series(player_a, player_b, num_games, board_params=(3, 3, 3, 1)):
+def run_match_series(player_a, player_b, num_games, board_params=(3, 3, 3)):
     """
     Run a series of games between two players, where each player gets an equal
     opportunity to play first. The function keeps track of wins for each player across all games.
@@ -136,7 +136,7 @@ def run_match_series(player_a, player_b, num_games, board_params=(3, 3, 3, 1)):
     for game in tqdm.tqdm(range(num_games)):
         current_first = player_list[0][0]
         current_second = player_list[1][0]
-        outcome = play_game(Board(*board_params), current_first, current_second, print_game=False)
+        outcome = play_game(Board(*board_params, 1), current_first, current_second, print_game=False)
         
         # Update win counts based on game outcome
         if outcome == 1:

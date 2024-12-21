@@ -15,14 +15,14 @@ class Board():
         else:  # Ensures a deepcopy is created
             self.state = tuple(map(list, state))
             self.empties = [*empties]
-    
+
     def __str__(self):
         symbols = {1: "X", -1: "O", 0: "_"}
         return "\n".join(str([symbols[token] for token in row]) for row in self.state)
-    
+
     def deepcopy(self):
         return Board(self.width, self.height, self.win_length, self.turn, self.state, self.empties)
-        
+
     def out_of_bounds(self, square):
         x, y = square
         return (x < 0 or             # Left edge
@@ -31,10 +31,23 @@ class Board():
                 y >= self.height)    # Bottom edge
 
     def outcome(self, last_move):
+        """
+        Determines if the last move resulted in a win or draw.
+
+        The function checks for a winning line by examining four directions from the last move:
+        - Diagonal (\)
+        - Horizontal (-) 
+        - Other Diagonal (/) 
+        - Vertical (|)
+
+        For each direction, it:
+        1. Counts consecutive matching symbols in one direction
+        2. Counts consecutive matching symbols in the opposite direction
+        3. Adds the counts together (including the last move position)
+        4. If total count reaches win_length, that player wins
+        """
         player = self.state[last_move[1]][last_move[0]]
-        directions = [(-1, -1), (-1, 0), (-1, 1),
-                      ( 0, -1),          ( 0, 1),
-                      ( 1, -1), ( 1, 0), ( 1, 1)]
+        directions = [(-1, -1), (-1, 0), (-1, 1),( 0, -1)]
         for dx, dy in directions:
             line_length = 1
             # Check in one direction
@@ -43,14 +56,16 @@ class Board():
                 line_length += 1
                 x += dx
                 y += dy
+                if line_length >= self.win_length:
+                    return player
             # Check in the opposite direction
             x, y = last_move[0] - dx, last_move[1] - dy
             while not self.out_of_bounds((x, y)) and self.state[y][x] == player:
                 line_length += 1
                 x -= dx
                 y -= dy
-            if line_length >= self.win_length:
-                return player
+                if line_length >= self.win_length:
+                    return player
         if len(self.empties) == 0:
             return 0
         return None

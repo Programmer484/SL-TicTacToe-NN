@@ -56,7 +56,7 @@ def calculate_accuracy(
     """
     correct = 0
     if return_failed_predictions:
-        fails = {i: [] for i in range(9)}
+        fails = {i: [] for i in range(board_size[0] * board_size[1])}
     for board, move_probs in data_set:
         output = net(board)
         best_move = torch.argmax(move_probs)

@@ -41,7 +41,13 @@ def calculate_loss(data_set, net, loss_metric, optimizer=None):
     return total_loss / len(data_set)
 
 
-def calculate_accuracy(data_set, net, probability_threshold=0.1, return_failed_predictions=False, board_size=(3, 3)):
+def calculate_accuracy(
+    data_set,
+    net,
+    board_size=(3, 3),             
+    probability_threshold=0.1,      
+    return_failed_predictions=False,
+):
     """
     A prediction is considered correct if the network's highest probability move
     is within the probability_threshold of the target's highest probability move.

@@ -41,7 +41,7 @@ def calculate_loss(data_set, net, loss_metric, optimizer=None):
     return total_loss / len(data_set)
 
 
-def calculate_accuracy(data_set, net, probability_threshold=0.1, return_failed_predictions=False):
+def calculate_accuracy(data_set, net, probability_threshold=0.1, return_failed_predictions=False, board_size=(3, 3)):
     """
     A prediction is considered correct if the network's highest probability move
     is within the probability_threshold of the target's highest probability move.
@@ -60,9 +60,9 @@ def calculate_accuracy(data_set, net, probability_threshold=0.1, return_failed_p
         elif return_failed_predictions:
             game_length = (board != 0).sum().item()
             # Format tensors for easier reading
-            board = board.view(3, 3).tolist()
-            move_probs = move_probs.view(3, 3).tolist()
-            output = output.view(3, 3).tolist()
+            board = board.view(*board_size).tolist()
+            move_probs = move_probs.view(*board_size).tolist()
+            output = output.view(*board_size).tolist()
             output = [[round(val, 3) for val in row] for row in output]
             fails[game_length].append((board, move_probs, output))
     if return_failed_predictions:

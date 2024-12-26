@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 from game_logic import *
 
 # Allows us to import a module name that starts with a digit
-module = importlib.import_module('2_train_net')
+module = importlib.import_module('1_train_net')
 TTTNet = getattr(module, 'TTTNet')
 
 

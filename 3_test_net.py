@@ -48,19 +48,18 @@ class NetPlayer(Player):
 
         if print_probs:
             print("\nNetwork probabilities:")
-            for y in range(3):
-                print([f"{move_probs[y*3 + x]:.3f}" for x in range(3)])
+            for y in range(board.height):
+                print([f"{move_probs[y*board.width + x]:.3f}" for x in range(board.width)])
 
-        # If a move is illegal, set its probability to 0
-        for move in range(9):
-            if (move % 3, move // 3) not in board.empties:
-                move_probs[move] = 0.0    
-        
+        for move in range(board.width * board.height):
+            if (move % board.width, move // board.height) not in board.empties:
+                move_probs[move] = 0.0
+
         if self.deterministic:
             best_move_idx = torch.argmax(move_probs).item()
         else:
             best_move_idx = torch.multinomial(move_probs, 1).item()
-        best_move = (best_move_idx % 3, best_move_idx // 3)
+        best_move = (best_move_idx % board.width, best_move_idx // board.height)
 
         return best_move
 
@@ -89,7 +88,7 @@ class MCTSPlayer(Player):
             best_move_idx = torch.argmax(move_probs).item()
         else:
             best_move_idx = torch.multinomial(move_probs, 1).item()
-        best_move = (best_move_idx % 3, best_move_idx // 3)
+        best_move = (best_move_idx % board.width, best_move_idx // board.height)
 
         return best_move
 

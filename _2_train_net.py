@@ -1,4 +1,5 @@
 import pickle
+import os
 import random
 
 import torch
@@ -79,11 +80,15 @@ def calculate_accuracy(
 def save_model(model, hidden_size, train_test_split):
     train_pct = int(train_test_split * 100) # Convert to percentage for model path
     model_path = f'saved_models/model_{hidden_size}h_{train_pct}tr.pth'
+    i = 1
+    while os.path.exists(model_path):
+        model_path = f'saved_models/model_{hidden_size}h_{train_pct}tr_{i}.pth'
+        i += 1
     torch.save(model.state_dict(), model_path)
     print(f"Model saved to {model_path}")
 
 
-def train_model(train_test_split, network_hidden_size, epochs=25, learn_rate=0.1):
+def train_model(data_file_path, train_test_split, network_hidden_size, epochs=25, learn_rate=0.1):
     """
     This function trains a neural network to predict optimal moves in Tic-Tac-Toe using
     supervised learning from MCTS-generated training data.
@@ -102,10 +107,10 @@ def train_model(train_test_split, network_hidden_size, epochs=25, learn_rate=0.1
         6. Displays failed predictions for analysis
     """
     # Prepare training data
-    with open('train_data/mcts200_iterations.pkl', 'rb') as f:
+    with open(data_file_path, 'rb') as f:
         all_data = pickle.load(f)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    tensor_data = [(torch.tensor(board.state, dtype=torch.float).flatten().to(device),
+    tensor_data = [(torch.tensor(board, dtype=torch.float).flatten().to(device),
                     torch.tensor(move_probs, dtype=torch.float).flatten().to(device))
                     for board, move_probs in all_data]
     random.shuffle(tensor_data)
@@ -162,4 +167,5 @@ def save_failed_predictions(fails):
 
 
 if __name__ == '__main__':
-    train_model(0.8, 36, epochs=25, learn_rate=0.1)
+    train_model("train_data/mcts200_iterations.pkl", 0.8, 36, epochs=25, learn_rate=0.1)
+    train_model("train_data/minimax.pkl", 0.8, 36, epochs=25, learn_rate=0.1)

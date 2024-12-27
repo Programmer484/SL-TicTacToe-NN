@@ -5,10 +5,7 @@ from abc import ABC, abstractmethod
 
 
 from game_logic import *
-
-# Allows us to import a module name that starts with a digit
-module = importlib.import_module('1_train_net')
-TTTNet = getattr(module, 'TTTNet')
+from _2_train_net import TTTNet
 
 
 class Player(ABC):
@@ -157,6 +154,11 @@ def load_model(hidden_size, train_split):
     net.load_state_dict(torch.load(model_path))
     return net
 
+net1 = TTTNet()
+net2 = TTTNet()
+net1.load_state_dict(torch.load('saved_models/model_36h_80tr_1.pth'))
+net2.load_state_dict(torch.load('saved_models/model_36h_80tr_2.pth'))
 
-print(run_match_series(NetPlayer(load_model(36, 0.8), deterministic=True), RandomPlayer(), 1000))
-print(run_match_series(NetPlayer(load_model(36, 0.8), deterministic=False), MCTSPlayer(1000, deterministic=False), 1000))
+print(run_match_series(NetPlayer(net1, deterministic=False), NetPlayer(net2, deterministic=False), 1000))
+# print(run_match_series(NetPlayer(load_model(36, 0.8), deterministic=True), RandomPlayer(), 1000))
+# print(run_match_series(NetPlayer(load_model(36, 0.8), deterministic=False), MCTSPlayer(1000, deterministic=False), 1000))

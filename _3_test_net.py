@@ -155,8 +155,8 @@ def load_model(hidden_size, train_split):
 
 net1 = TTTNet()
 net2 = TTTNet()
-net1.load_state_dict(torch.load('saved_models/model_36h_80tr_1.pth'))
-net2.load_state_dict(torch.load('saved_models/model_36h_80tr_2.pth'))
+net1.load_state_dict(torch.load('saved_models/model_36h_80tr_mcts.pth'))
+net2.load_state_dict(torch.load('saved_models/model_36h_80tr_minimax.pth'))
 
 print(run_match_series(NetPlayer(net1, deterministic=False), NetPlayer(net2, deterministic=False), 1000))
 # print(run_match_series(NetPlayer(load_model(36, 0.8), deterministic=True), RandomPlayer(), 1000))
